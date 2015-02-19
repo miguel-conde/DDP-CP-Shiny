@@ -66,7 +66,6 @@ shinyServer(function(input, output, session) {
     ## Reactives for KMeans
     
     selectedData <- reactive({
-        #iris[, c(input$xk_var, input$yk_var)]
         good <- !is.na(rawExoData[, input$xk_var]) & 
             !is.na(rawExoData[, input$yk_var]) & 
             !is.na(rawExoData[, "DiscoveryMethod"])
@@ -89,7 +88,6 @@ shinyServer(function(input, output, session) {
     ## RENDER Table
     output$mytable <- renderDataTable({
         dataTable()
-        #        rawExoData[, input$show_vars, drop = FALSE]
     }, options = list(orderClasses = TRUE, pageLength = 10))
     
     ## RENDER Plot
@@ -99,8 +97,6 @@ shinyServer(function(input, output, session) {
         xs <- x_Plot()
         ys <- y_Plot()
         dd <- dd[!is.na(dd[,xs]) & !is.na(dd[,ys]), ]
-        
-        #print(dd[, c(xs,ys)])
         
         p <- ggplot(data = dd,
                     aes_string(x = xs, y = ys),
@@ -116,7 +112,6 @@ shinyServer(function(input, output, session) {
             p <- p + scale_x_continuous(trans = log10_trans())  # Need the scales package
         }
         else {
-            # max_x = max(rawExoData[!is.na(x_Plot), ], na.rm=T)
             rango <- range(dd[,xs],na.rm=T)
             p <- p + scale_x_continuous(trans = identity_trans())
         }
@@ -135,25 +130,17 @@ shinyServer(function(input, output, session) {
     output$myhistogram <- renderPlot({
         
         dd <- dataHistogram()
-        #         xs <- x_Histogram()
-        #         dd <- dd[!is.na(dd[,xs]), ]
         dd <- dd[dd$DiscoveryYear > 1980, ]
-        #print(unique(dd$DiscoveryYear))
+
         r <- range(dataRangeHistogram(), na.rm = T)
         rango <- r[2] - r[1] + 1
         brk <- min(dataSliderHistogram(),rango)
         
         b_w <-  (rango / brk)
-        #print(rango)
-        #print(brk)
-        #print(b_w)
-        #print(dataSliderHistogram())
-        
         
         p <- ggplot(data = dd, 
                     aes_string(x = x_Histogram())) + 
             geom_bar(stat="bin", 
-                     #breaks = brk,
                      binwidth = b_w,
                      colour = "black", aes(fill = DiscoveryMethod)) +
             xlab(input$xh_var) +
@@ -171,28 +158,17 @@ shinyServer(function(input, output, session) {
         print(p)
     }, height = 600, width = 800)
     
-    ## RENDER Text
-    #     output$mycodeBook <- renderVerbatimText({
-    #         h1("This is my CodeBook")
-    # 
-    #     })
     
     # RENDER K-Means
     palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
               "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
     output$mykmeans <- renderPlot({
-        #         par(mar = c(5.1, 4.1, 0, 1))
-        #         plot(selectedData(),
-        #              col = clusters()$cluster,
-        #              pch = 20, cex = 3)
-        #         points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
         
         data <- selectedData()
         cluster <-clusters()$cluster
         centers <- clusters()$centers
         sel_methods <- k_sel_methods()
         data$DiscoveryMethod <- (sel_methods)
-#        print(data)
         
         p <- ggplot(data = data,
                     aes_string(x = input$xk_var, y = input$yk_var)) +
@@ -203,16 +179,6 @@ shinyServer(function(input, output, session) {
         p <- p + geom_point(data = as.data.frame(centers), 
                             aes_string(x = input$xk_var, y = input$yk_var),
                             size = 10, shape = 4, cex = 20)
-        
-        # p <- ggplot(data = data,
-        #             aes_string(x = input$xk_var, y = input$yk_var,
-        #                        shape = "DiscoveryMethod")) +
-        #     geom_point(size = 6, aes(colour = factor(cluster)))
-        # 
-        # p <- p + geom_point(data = as.data.frame(centers), 
-        #                     aes_string(x = input$xk_var, y = input$yk_var),
-        #                     size = 10, shape = 4)
-        # 
         
         p <- p + scale_colour_hue(l = 40) + 
             scale_fill_hue(l = 40) +
@@ -225,12 +191,8 @@ shinyServer(function(input, output, session) {
     }, height = 600, width = 800)
     
     output$codebook <- renderPrint({
-        #summary(cars)
         h2("Exoplanets Code Book")
         pre(includeText("CodeBook.txt"))
     })
     
-#     output$table <- renderDataTable({
-#         cars
-#     }, options=list(pageLength=10))
 })
